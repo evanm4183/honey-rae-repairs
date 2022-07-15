@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import "./Tickets.css"
 
-export const TicketList = () => {
+export const TicketList = ({searchTermState}) => {
     const [tickets, setTickets] = useState([])
     const [filteredTickets, setFiltered] = useState([])
     const [emergency, setEmergency] = useState(false)
@@ -34,6 +34,13 @@ export const TicketList = () => {
         },
         [tickets]
     )
+
+    useEffect(() => {
+        const searchedTickets = tickets.filter(ticket => {
+            return ticket.description.toLowerCase().startsWith(searchTermState.toLowerCase())
+        })
+        setFiltered(searchedTickets)
+    }, [searchTermState])
 
     useEffect(
         () => {
