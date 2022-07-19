@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
+import { Ticket } from "./Ticket"
 import "./Tickets.css"
 
 export const TicketList = ({searchTermState}) => {
     const [tickets, setTickets] = useState([])
     const [filteredTickets, setFiltered] = useState([])
+    const [employees, setEmployees] = useState([])
     const [emergency, setEmergency] = useState(false)
     const [openOnly, updateOpenOnly] = useState(false)
     const navigate = useNavigate()
@@ -12,12 +14,22 @@ export const TicketList = ({searchTermState}) => {
     const localHoneyUser = localStorage.getItem("honey_user")
     const honeyUserObject = JSON.parse(localHoneyUser)
 
-    useEffect(
-        () => {
-            fetch(`http://localhost:8088/serviceTickets`)
+    const getAllTickets = () => {
+        fetch(`http://localhost:8088/serviceTickets?_embed=employeeTickets`)
             .then(res => res.json())
             .then((ticketArray) => {
                 setTickets(ticketArray)
+            })
+    }
+
+    useEffect(
+        () => {
+            getAllTickets()
+
+            fetch(`http://localhost:8088/employees?_expand=user`)
+            .then(res => res.json())
+            .then((data) => {
+                setEmployees(data)
             })
         },
         [] // When this array is empty, you are observing initial component state
@@ -84,13 +96,12 @@ export const TicketList = ({searchTermState}) => {
             {
             filteredTickets.map(
                 ticket => {
-                    return <section className="ticket" key={ticket.id}>
-                        <header>
-                            <Link to={`/tickets/${ticket.id}/edit`}>Ticket {ticket.id}</Link>
-                        </header>
-                        <section>{ticket.description}</section>
-                        <footer>Emergency: {ticket.emergency ? "Yes" : "No"}</footer>
-                    </section>
+                    return <Ticket 
+                        ticket={ticket} 
+                        employees={employees} 
+                        currentUser={honeyUserObject}
+                        getAllTickets={getAllTickets}
+                        key={`ticket--${ticket.id}`} />
                 }
                 )
             }
